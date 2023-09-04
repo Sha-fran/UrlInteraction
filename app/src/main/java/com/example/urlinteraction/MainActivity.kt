@@ -8,6 +8,7 @@ import android.os.Looper
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
 import okhttp3.Call
@@ -46,21 +47,44 @@ class MainActivity : Activity() {
 //                .into(imageContent)
 //        }
 
+//        requestButton.setOnClickListener {
+//            val client = OkHttpClient()
+//            val request = okhttp3.Request.Builder().url("https://example.com").build()
+//            client.newCall(request).enqueue(object : Callback {
+//                override fun onFailure(call: Call, e: IOException) {
+//
+//                }
+//
+//                override fun onResponse(call: Call, response: Response) {
+//                    if (response.isSuccessful) {
+//                        val handler = Handler(Looper.getMainLooper())
+//                        handler.post {
+//                            textContent.text = response.body?.string()
+//                        }
+//                    }
+//                }
+//
+//            })
+//        }
+
         requestButton.setOnClickListener {
-            val client = OkHttpClient()
-            val request = okhttp3.Request.Builder().url("https://example.com").build()
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
+            val client = ApiClient.retrofit.create(ApiInterface::class.java)
+
+            client.getBitcoin().enqueue(object:retrofit2.Callback<BitcoinResponce> {
+                override fun onResponse(
+                    call: retrofit2.Call<BitcoinResponce>,
+                    response: retrofit2.Response<BitcoinResponce>
+                ) {
+                    if (response.isSuccessful) {
+                        val data = response.body()?.data
+                        val message = "${data?.currencySymbol} ${data?.id} ${data?.rateUsd}"
+                        textContent.text = message
+                    }
 
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        val handler = Handler(Looper.getMainLooper())
-                        handler.post {
-                            textContent.text = response.body?.string()
-                        }
-                    }
+                override fun onFailure(call: retrofit2.Call<BitcoinResponce>, t: Throwable) {
+                    Toast.makeText(this@MainActivity, "Помилка", Toast.LENGTH_SHORT).show()
                 }
 
             })
